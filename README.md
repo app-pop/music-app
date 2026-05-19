@@ -31,6 +31,8 @@
 | **界面** | `PlayerBar` 等样式调整；`PactModal` 等小改动。 |
 | **Android 工程** | `android/build.gradle`、`gradle.properties`、`gradle-wrapper.properties` 等为本地可打包环境调整（若你环境不同请自行对齐）。 |
 
+友好链接：https://linux.do
+
 ### 同步上游示例
 
 ```bash
