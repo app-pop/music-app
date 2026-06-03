@@ -5,6 +5,7 @@ import migrateSetting from './migrateSetting'
 import settingState from '@/store/setting/state'
 import { migrateMetaData, migrateListData } from './migrate'
 import { exitApp, tipDialog } from '@/utils/tools'
+import { BUILTIN_USER_API_ID } from './builtinUserApi'
 
 // 业务相关工具方法
 
@@ -100,6 +101,13 @@ export const initSetting = async() => {
         throw err
       }
       await removeData(storageDataPrefixOld.setting)
+    }
+  }
+
+  if (setting && !setting['common.apiSource']) {
+    setting = {
+      ...setting,
+      'common.apiSource': BUILTIN_USER_API_ID,
     }
   }
 

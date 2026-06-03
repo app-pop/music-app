@@ -13,6 +13,7 @@ import { Icon } from '@/components/common/Icon'
 import settingState from '@/store/setting/state'
 import apiSourceInfo from '@/utils/musicSdk/api-source-info'
 import { setApiSource } from '@/core/apiSource'
+import { isBuiltinUserApi } from '@/config/builtinUserApi'
 
 const formatVersionName = (version: string) => {
   return /^\d/.test(version) ? `v${version}` : version
@@ -25,6 +26,8 @@ const ListItem = ({ item, activeId, onRemove, onChangeAllowShowUpdateAlert }: {
 }) => {
   const theme = useTheme()
   const t = useI18n()
+  const isBuiltin = isBuiltinUserApi(item.id)
+  const removable = !isBuiltin
   const changeAllowShowUpdateAlert = (check: boolean) => {
     onChangeAllowShowUpdateAlert(item.id, check)
   }
@@ -53,13 +56,25 @@ const ListItem = ({ item, activeId, onRemove, onChangeAllowShowUpdateAlert }: {
             <Text size={12} color={theme['c-font-label']}>{item.description}</Text>
           ) : null
         }
-        <CheckBox check={item.allowShowUpdateAlert} label={t('user_api_allow_show_update_alert')} onChange={changeAllowShowUpdateAlert} size={0.86} />
+        <CheckBox
+          disabled={isBuiltin}
+          check={item.allowShowUpdateAlert}
+          label={t('user_api_allow_show_update_alert')}
+          onChange={changeAllowShowUpdateAlert}
+          size={0.86}
+        />
       </View>
-      <View style={styles.listItemRight}>
-        <TouchableOpacity style={styles.btn} onPress={handleRemove}>
-          <Icon name="close" color={theme['c-button-font']} />
-        </TouchableOpacity>
-      </View>
+      {
+        removable
+          ? (
+              <View style={styles.listItemRight}>
+                <TouchableOpacity style={styles.btn} onPress={handleRemove}>
+                  <Icon name="close" color={theme['c-button-font']} />
+                </TouchableOpacity>
+              </View>
+            )
+          : null
+      }
     </View>
   )
 }
@@ -80,6 +95,7 @@ export default () => {
   const t = useI18n()
 
   const handleRemove = useCallback(async(id: string, name: string) => {
+    if (isBuiltinUserApi(id)) return
     const confirm = await confirmDialog({
       message: global.i18n.t('user_api_remove_tip', { name }),
       cancelButtonText: global.i18n.t('cancel_button_text_2'),

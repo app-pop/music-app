@@ -1,6 +1,7 @@
 import { getData, saveData, getAllKeys, removeDataMultiple, saveDataMultiple, removeData, getDataMultiple } from '@/plugins/storage'
 import { DEFAULT_SETTING, LIST_IDS, storageDataPrefix, type NAV_ID_Type } from '@/config/constant'
 import { throttle } from './common'
+import { BUILTIN_USER_API_ID, getBuiltinUserApiInfo, getBuiltinUserApiScript, isBuiltinUserApi } from '@/config/builtinUserApi'
 // import { gzip, ungzip } from '@/utils/nativeModules/gzip'
 // import { readFile, writeFile, temporaryDirectoryPath, unlink } from '@/utils/fs'
 // import { isNotificationsEnabled, openNotificationPermissionActivity, shareText } from '@/utils/nativeModules/utils'
@@ -495,12 +496,19 @@ export const removeSyncHostHistory = async(index: number) => {
 }
 
 let userApis: LX.UserApi.UserApiInfo[] = []
+const getAllUserApis = () => [getBuiltinUserApiInfo(), ...userApis]
 export const getUserApiList = async(): Promise<LX.UserApi.UserApiInfo[]> => {
   userApis = await getData<LX.UserApi.UserApiInfo[]>(userApiPrefix) ?? []
 
   // 移除 1.7.1 及之前版本的脚本数据被意外存储到列表中的问题
   let updated = false
-  for (const info of userApis) {
+  for (let index = userApis.length - 1; index > -1; index--) {
+    const info = userApis[index]
+    if (info.id == BUILTIN_USER_API_ID) {
+      userApis.splice(index, 1)
+      updated = true
+      continue
+    }
     if ((info as LX.UserApi.UserApiInfo & { script?: string }).script != null) {
       delete (info as LX.UserApi.UserApiInfo & { script?: string }).script
       updated = true
@@ -508,9 +516,10 @@ export const getUserApiList = async(): Promise<LX.UserApi.UserApiInfo[]> => {
   }
   if (updated) void saveData(userApiPrefix, userApis)
 
-  return [...userApis]
+  return getAllUserApis()
 }
 export const getUserApiScript = async(id: string): Promise<string> => {
+  if (isBuiltinUserApi(id)) return getBuiltinUserApiScript()
   const script = await getData<string>(`${userApiPrefix}${id}`) ?? ''
   return script
 }
@@ -563,6 +572,8 @@ export const addUserApi = async(script: string): Promise<LX.UserApi.UserApiInfo>
   return apiInfo
 }
 export const removeUserApi = async(ids: string[]) => {
+  ids = ids.filter(id => !isBuiltinUserApi(id))
+  if (!ids.length) return getAllUserApis()
   if (!userApis) return []
   const _ids: string[] = []
   for (let index = userApis.length - 1; index > -1; index--) {
@@ -574,9 +585,10 @@ export const removeUserApi = async(ids: string[]) => {
   }
   await saveData(userApiPrefix, userApis)
   if (_ids.length) await removeDataMultiple(_ids)
-  return [...userApis]
+  return getAllUserApis()
 }
 export const setUserApiAllowShowUpdateAlert = async(id: string, enable: boolean) => {
+  if (isBuiltinUserApi(id)) return
   const targetApi = userApis?.find(api => api.id == id)
   if (!targetApi) return
   targetApi.allowShowUpdateAlert = enable

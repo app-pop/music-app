@@ -1,8 +1,10 @@
+import { BUILTIN_USER_API_ID } from './builtinUserApi'
+
 const defaultSetting: LX.AppSetting = {
   version: '2.0',
   'common.isAutoTheme': false,
   'common.langId': null,
-  'common.apiSource': '',
+  'common.apiSource': BUILTIN_USER_API_ID,
   'common.sourceNameType': 'real',
   'common.shareType': 'system',
   'common.isAgreePact': false,
