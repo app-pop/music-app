@@ -113,7 +113,7 @@ android {
     // 改为 com.luna.music，用于绕过小米后屏对第三方音乐应用的白名单限制
     // 副作用：与同名"汽水音乐"互斥；老用户从 cn.toside.music.mobile 升级时会被
     // 视为不同应用，需卸载老版后重装。
-    namespace "cn.toside.music.mobile"
+    namespace "com.luna.music"
     defaultConfig {
         applicationId "com.luna.music"
         minSdkVersion rootProject.ext.minSdkVersion
